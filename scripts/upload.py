@@ -5,13 +5,16 @@ Push one or more local media files into an arkiv library via the
 POST /api/ingest/upload endpoint, then it is auto-ingested.
 
 Usage:
+    # Token is embedded (LAN build) — no env needed:
+    python3 scripts/upload.py clip.mp4 another.mov
+    # Override endpoint / token if needed:
     ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxxx \
         python3 scripts/upload.py clip.mp4 another.mov
 
 Environment:
     ARKIV_BASE_URL   arkiv API base (default http://192.168.1.3:8501)
-    ARKIV_TOKEN      access token with ingest_write scope. Required when talking
-                     to a non-loopback host; loopback may be trusted as admin.
+    ARKIV_TOKEN      access token with ingest_write scope. Defaults to the
+                     embedded LAN token; override only to rotate / use another.
 
 Pure standard library - no third-party dependencies, so it runs on any
 platform that has Python 3 (Linux, macOS, Windows, *BSD, ...).
@@ -23,6 +26,11 @@ import urllib.error
 import urllib.request
 
 DEFAULT_BASE = "http://192.168.1.3:8501"
+# Embedded access token (ingest_write scope) so the helper works on a LAN
+# without the caller setting ARKIV_TOKEN. Override via the ARKIV_TOKEN env
+# var if you need a different / rotated token. LAN-only deployment — the
+# operator accepts the plaintext token living in this file.
+DEFAULT_TOKEN = "khTrie1s82jyiUwlO4a0GEyJxC3ZXEqYO3A6Uqou17g"
 LOOPBACK_TOKENS = ("localhost", "127.0.0.1", "[::1]", "0.0.0.0")
 
 
@@ -33,7 +41,7 @@ def is_loopback(url: str) -> bool:
 
 def main() -> int:
     base = os.environ.get("ARKIV_BASE_URL", DEFAULT_BASE).rstrip("/")
-    token = os.environ.get("ARKIV_TOKEN", "")
+    token = os.environ.get("ARKIV_TOKEN", DEFAULT_TOKEN)
     files = sys.argv[1:]
 
     if not files:

@@ -52,9 +52,11 @@ POST {ARKIV_BASE_URL}/api/ingest/upload
   local deployment; for a LAN / remote arkiv use its host:port.
 - Field name: `files` (multipart/form-data). One or many files per request.
 - Auth: a header `Authorization: Bearer {ARKIV_TOKEN}` where `ARKIV_TOKEN` is any
-  arkiv access token that has the `ingest_write` scope (e.g. the `ui-test`
-  token). Loopback connections may be trusted as admin automatically; for LAN
-  use the token.
+   arkiv access token that has the `ingest_write` scope. **The bundled
+   `scripts/upload.py` already embeds a LAN token**, so no env setup is needed
+   when using the helper. For raw curl / a different token, pass `ARKIV_TOKEN`
+   (e.g. the `ui-test` token). Loopback connections may be trusted as admin
+   automatically; for LAN use the token.
 
 ### Request example
 
@@ -79,7 +81,10 @@ A ready-made, cross-platform helper ships with this skill — read
 \*BSD) and run it:
 
 ```bash
-ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxx \
+# Token is embedded — no env needed:
+python3 scripts/upload.py clip.mp4 another.mov
+# Or override endpoint / token:
+ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxxx \
   python3 scripts/upload.py clip.mp4 another.mov
 ```
 
