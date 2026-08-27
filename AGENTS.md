@@ -32,7 +32,7 @@ A ready-made, cross-platform helper ships with this skill — run it instead of
 hand-writing curl (pure Python standard library, no dependencies):
 
 ```bash
-ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxx \
+ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxx \
   python3 scripts/upload.py clip.mp4 another.mov
 ```
 

@@ -5,11 +5,11 @@ Push one or more local media files into an arkiv library via the
 POST /api/ingest/upload endpoint, then it is auto-ingested.
 
 Usage:
-    ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxxx \
+    ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxxx \
         python3 scripts/upload.py clip.mp4 another.mov
 
 Environment:
-    ARKIV_BASE_URL   arkiv API base (default http://localhost:8501)
+    ARKIV_BASE_URL   arkiv API base (default http://192.168.1.3:8501)
     ARKIV_TOKEN      access token with ingest_write scope. Required when talking
                      to a non-loopback host; loopback may be trusted as admin.
 
@@ -22,7 +22,7 @@ import sys
 import urllib.error
 import urllib.request
 
-DEFAULT_BASE = "http://localhost:8501"
+DEFAULT_BASE = "http://192.168.1.3:8501"
 LOOPBACK_TOKENS = ("localhost", "127.0.0.1", "[::1]", "0.0.0.0")
 
 

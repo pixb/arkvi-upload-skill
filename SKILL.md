@@ -16,7 +16,7 @@ metadata:
   review_interval_days: 180
   dependencies:
     - name: arkiv API
-      url: http://localhost:8501
+      url: http://192.168.1.3:8501
       type: service
 provenance:
   maintainer: pix
@@ -48,7 +48,7 @@ Push media (video / audio) into an **arkiv** library and have it auto-ingested
 POST {ARKIV_BASE_URL}/api/ingest/upload
 ```
 
-- `ARKIV_BASE_URL` — arkiv API base. Defaults to `http://localhost:8501` for a
+- `ARKIV_BASE_URL` — arkiv API base. Defaults to `http://192.168.1.3:8501` for a
   local deployment; for a LAN / remote arkiv use its host:port.
 - Field name: `files` (multipart/form-data). One or many files per request.
 - Auth: a header `Authorization: Bearer {ARKIV_TOKEN}` where `ARKIV_TOKEN` is any
@@ -79,7 +79,7 @@ A ready-made, cross-platform helper ships with this skill — read
 \*BSD) and run it:
 
 ```bash
-ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxx \
+ARKIV_BASE_URL=http://192.168.1.3:8501 ARKIV_TOKEN=xxx \
   python3 scripts/upload.py clip.mp4 another.mov
 ```
 
