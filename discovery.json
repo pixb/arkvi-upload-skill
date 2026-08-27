@@ -1,0 +1,48 @@
+{
+  "question": "How can an agent push local media files into an arkiv library and have them auto-ingested without manual file copying?",
+  "trigger": [
+    "A user asks to upload / 上传 / ingest a clip into arkiv",
+    "An agent needs to add media to arkiv over HTTP rather than via MCP (which is read-only)"
+  ],
+  "decision": [
+    "Use POST /api/ingest/upload with a multipart 'files' field and a Bearer token (ingest_write scope)",
+    "Return 202 and let the background single-flight ingest transcribe + index the clip",
+    "Poll GET /api/stats to confirm the new row appeared"
+  ],
+  "evidence": [
+    "The arkiv upload endpoint implementation (routers/ingest.py) and its constraints",
+    "The arkiv compose deployment where ./media-in is mounted rw at /app/media-in"
+  ],
+  "success_measure": "A media file dropped locally is pushed via this skill and becomes searchable in arkiv without any manual copy or UI interaction",
+  "environment": {
+    "documentation_sources": ["arkiv routers/ingest.py", "arkiv compose.yaml"],
+    "data_sources": ["local media files on the agent machine"],
+    "required_capabilities": ["read local media files", "POST to the arkiv API"],
+    "readiness_checks": ["ARKIV_BASE_URL is reachable", "ARKIV_TOKEN has ingest_write scope"]
+  },
+  "risk": {
+    "tier": "low",
+    "mutation_boundary": "read-only",
+    "permissions": ["read local media files", "POST to the arkiv API"]
+  },
+  "software_mutation": {
+    "applies": false
+  },
+  "data_interfaces": {
+    "applies": false
+  },
+  "routing_tests": {
+    "should_trigger": [
+      "upload this clip to arkiv",
+      "上传这段视频到 arkiv",
+      "ingest /path/to/clip.mp4 into arkiv",
+      "add these audio files to my arkiv library"
+    ],
+    "should_not_trigger": [
+      "search arkiv for cat videos",
+      "transcribe this already-ingested clip",
+      "show me my arkiv library stats",
+      "delete a media item from arkiv"
+    ]
+  }
+}

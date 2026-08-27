@@ -1,16 +1,43 @@
 ---
-name: arkiv-upload
-description: Upload media files into an arkiv library over HTTP and trigger ingest. Use when a user wants to add video/audio clips to arkiv, push local media files into arkiv, or when an agent needs to ingest media into arkiv without manually copying files into a directory. Documents the arkiv POST /api/ingest/upload endpoint, Bearer-token auth, file/extension/size constraints, the concurrency limit, and how the background ingest picks the file up.
+name: arkiv-upload-skill
+description: >-
+  Add video/audio clips to an arkiv library and trigger ingest without manual
+  file copying. Use when a user wants to push local media into arkiv, or an
+  agent needs to ingest media into arkiv over HTTP. Activates on phrases like
+  upload to arkiv, 上传到 arkiv, ingest this clip, add media to arkiv, push file
+  into arkiv.
+license: MIT
+activation: /arkiv-upload-skill
+metadata:
+  author: pix
+  version: 1.0.0
+  created: 2026-08-27
+  last_reviewed: 2026-08-27
+  review_interval_days: 180
+  dependencies:
+    - name: arkiv API
+      url: http://localhost:8501
+      type: service
+provenance:
+  maintainer: pix
+  version: 1.0.0
+  created: 2026-08-27
+  source_references:
+    - https://github.com/pixb/arkiv
+compatibility: >-
+  Works on all platforms supporting the Agent Skills Open Standard (SKILL.md):
+  Claude Code, GitHub Copilot CLI, VS Code Copilot, Cursor, Windsurf, Cline,
+  OpenAI Codex CLI, Gemini CLI, OpenCode, and more.
 ---
 
-# Arkiv Upload Skill
+# /arkiv-upload-skill
 
-This skill lets a skills-compatible agent push media (video / audio) into an
-**arkiv** library and have it auto-ingested (transcribed + indexed) so it
-becomes searchable. arkiv's MCP tools are **read-only** — uploading goes through
-this HTTP endpoint, not through MCP.
+Push media (video / audio) into an **arkiv** library and have it auto-ingested
+(transcribed + indexed) so it becomes searchable. arkiv's MCP tools are
+**read-only** — uploading goes through this HTTP endpoint, not through MCP.
 
 ## When to use
+
 - The user says "upload / 上传 / 加入 / ingest this clip into arkiv".
 - You have a local media file and need to push it into arkiv.
 - You want to add new source material to the arkiv library programmatically.
@@ -22,13 +49,12 @@ POST {ARKIV_BASE_URL}/api/ingest/upload
 ```
 
 - `ARKIV_BASE_URL` — arkiv API base. Defaults to `http://localhost:8501` for a
-  local deployment; for a LAN/remote arkiv use its host:port (e.g.
-  `http://192.168.x.x:8501`).
+  local deployment; for a LAN / remote arkiv use its host:port.
 - Field name: `files` (multipart/form-data). One or many files per request.
-- Auth: `Authorization: Bearer {ARKIV_TOKEN}` where `ARKIV_TOKEN` is any arkiv
-  access token that has the `ingest_write` scope (e.g. the `ui-test` token).
-  Loopback connections may be trusted as admin automatically; for LAN use the
-  token.
+- Auth: a header `Authorization: Bearer {ARKIV_TOKEN}` where `ARKIV_TOKEN` is any
+  arkiv access token that has the `ingest_write` scope (e.g. the `ui-test`
+  token). Loopback connections may be trusted as admin automatically; for LAN
+  use the token.
 
 ### Request example
 
@@ -48,6 +74,14 @@ curl -Ss -X POST \
   "$ARKIV_BASE_URL/api/ingest/upload"
 ```
 
+A ready-made helper ships with this skill — read
+`scripts/upload.sh` and run it:
+
+```bash
+ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxx \
+  bash scripts/upload.sh clip.mp4 another.mov
+```
+
 ### Success response (202 Accepted)
 
 ```json
@@ -59,10 +93,10 @@ curl -Ss -X POST \
 }
 ```
 
-Upload returns immediately after the file is written; ingest (whisper
+The call returns immediately after the file is written; ingest (whisper
 transcription + vision + embedding) runs in the background and may take a while
-for long clips. Poll `GET {ARKIV_BASE_URL}/api/stats` (`total` count) to see the
-new row appear.
+for long clips. Poll `GET {ARKIV_BASE_URL}/api/stats` (the `total` count) to see
+the new row appear.
 
 ## Constraints (enforced by the server)
 
@@ -89,9 +123,9 @@ upload is currently being received.
 
 ## Alternative: server-side path ingest
 
-If the file is **already on the arkiv server's filesystem** (not on the agent's
-machine), you can skip the upload and tell arkiv to ingest a directory it can
-already see:
+If the file is **already on the arkiv server's filesystem** (not on the
+agent's machine), you can skip the upload and tell arkiv to ingest a directory it
+can already see:
 
 ```bash
 curl -Ss -X POST \
@@ -103,9 +137,27 @@ curl -Ss -X POST \
 
 This only works for paths under arkiv's approved ingest roots (the media-in
 directory is one of them). Use the multipart upload above when the file lives
-on the agent/client side.
+on the agent / client side.
+
+## Gotchas
+
+- arkiv's MCP tools are read-only; uploading requires this HTTP endpoint, not MCP.
+- A filename like `a/b.mp4` is reduced to its basename `b.mp4` server-side
+  (path components are dropped, not rejected) — you cannot control where the
+  file lands; it always goes to the media-in directory.
+- Only media extensions are accepted; other files get `400`, not a silent skip.
+- The `202` response means "received + ingest scheduled", not "ingested". The
+  new row appears in `/api/stats` only after the background ingest finishes,
+  which for long clips can take minutes.
+- Background ingest is single-flight: if an ingest is already running, your
+  uploaded file waits in the queue (it is not lost).
+- The media-in mount must be `rw` for upload to write (the arkiv compose deploy
+  sets `./media-in:/app/media-in:rw`).
+- From `localhost` the request may be trusted as admin without a token; from any
+  other host the request requires a token that has the `ingest_write` scope.
 
 ## Notes
+
 - This is an HTTP API, independent of arkiv's MCP server. To let an agent
   "upload through MCP" you would need an `upload_media` MCP tool — that is a
   separate addition, not covered here.
