@@ -28,11 +28,12 @@ POST {ARKIV_BASE_URL}/api/ingest/upload
 - Header `Authorization: Bearer {ARKIV_TOKEN}` with the `ingest_write` scope.
 - Returns `202` immediately; background ingest then indexes the clip.
 
-A ready-made helper ships with this skill — run it instead of hand-writing curl:
+A ready-made, cross-platform helper ships with this skill — run it instead of
+hand-writing curl (pure Python standard library, no dependencies):
 
 ```bash
 ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxx \
-  bash scripts/upload.sh clip.mp4 another.mov
+  python3 scripts/upload.py clip.mp4 another.mov
 ```
 
 ## Gotchas

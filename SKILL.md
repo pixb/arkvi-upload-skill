@@ -74,12 +74,13 @@ curl -Ss -X POST \
   "$ARKIV_BASE_URL/api/ingest/upload"
 ```
 
-A ready-made helper ships with this skill — read
-`scripts/upload.sh` and run it:
+A ready-made, cross-platform helper ships with this skill — read
+`scripts/upload.py` (pure standard library, runs on Linux / macOS / Windows /
+\*BSD) and run it:
 
 ```bash
 ARKIV_BASE_URL=http://localhost:8501 ARKIV_TOKEN=xxx \
-  bash scripts/upload.sh clip.mp4 another.mov
+  python3 scripts/upload.py clip.mp4 another.mov
 ```
 
 ### Success response (202 Accepted)
